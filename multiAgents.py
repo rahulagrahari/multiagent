@@ -270,36 +270,6 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         return action
 
 
-
-
-
-        # legalActions = gameState.getLegalActions(0)
-        # bestaction = Directions.STOP
-        # score = -(float("inf"))
-        # alpha = -(float("inf"))
-        # beta = float("inf")
-        # for action in legalActions:
-        #     nextState = gameState.generateSuccessor(0, action)
-        #     prevscore = score
-        #     score = max(score, minFinder(nextState, self.depth, 1, alpha, beta))
-        #     if score > prevscore:
-        #         bestaction = action
-        #
-        #     alpha = max(alpha, score)
-        # return bestaction
-
-        # scoresOfPacmanMoves = []
-        # legal_actions = [action for action in gameState.getLegalActions(0) if action != Directions.STOP]
-        # for action in legal_actions:
-        #     score = minFinder(gameState.generateSuccessor(0, action), self.depth, 1,
-        #                       alpha=float('-inf'), beta=float('inf'))
-        #     scoresOfPacmanMoves.append((score, action))
-        #
-        # # Return the action with maximum score
-        # score, action = max(scoresOfPacmanMoves)
-        #
-        # return action
-
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
@@ -313,7 +283,44 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def maxFinder(gameState, depth):
+            if (depth == 0 or gameState.isWin() or gameState.isLose()):
+                return self.evaluationFunction(gameState)
+            actions = [action for action in gameState.getLegalActions(0) if action != Directions.STOP]
+            value = -float("inf")
+            for action in actions:
+                value = max(value, expectFinder(gameState.generateSuccessor(self.index, action), depth, 1))
+
+            return value
+
+        def expectFinder(gameState, depth, agent):
+            if depth == 0 or gameState.isWin() or gameState.isLose():
+                return self.evaluationFunction(gameState)
+            value = 0.0
+            actions = [action for action in gameState.getLegalActions(agent) if action != Directions.STOP]
+            if agent != (gameState.getNumAgents() - 1):
+                for action in actions:
+                    value += expectFinder(gameState.generateSuccessor(agent, action), depth, agent + 1)
+            else:
+                for action in actions:
+                    #score.append(maxFinder(gameState.generateSuccessor(agent, action), depth - 1, alpha, beta))
+                    value += maxFinder(gameState.generateSuccessor(agent, action), depth - 1)
+            return float(value) / float(len(actions))
+
+        scoresOfPacmanMoves = []
+        legal_actions = [action for action in gameState.getLegalActions(0) if action != Directions.STOP]
+        score = float('-inf')
+        bestAction = ''
+
+        for action in legal_actions:
+            score = expectFinder(gameState.generateSuccessor(0, action), self.depth, 1)
+            scoresOfPacmanMoves.append((score, action))
+            # print(scoresOfPacmanMoves)
+            alpha = max(alpha, score)
+
+        # Return the action with maximum score
+        score, action = max(scoresOfPacmanMoves)
+        return action
 
 def betterEvaluationFunction(currentGameState):
     """
